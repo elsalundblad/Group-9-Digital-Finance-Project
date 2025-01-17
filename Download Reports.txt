@@ -1,0 +1,37 @@
+import requests
+from bs4 import BeautifulSoup
+
+# Function to search for ESG PDF reports on a company's website
+def fetch_esg_pdf(company_name, search_url):
+    """
+    Fetch ESG report in PDF format from a company's website.
+    
+    Parameters:
+    company_name (str): The name of the company.
+    search_url (str): The URL to search for ESG reports.
+    
+    Returns:
+    None: Saves the downloaded PDF locally.
+    """
+    headers = {"User-Agent": "Mozilla/5.0"}  # Set user agent to avoid being blocked by the server
+    response = requests.get(search_url, headers=headers)  # Send GET request to the target URL
+    soup = BeautifulSoup(response.text, 'html.parser')  # Parse the HTML content using BeautifulSoup
+
+    # Find all links to PDF files on the webpage
+    pdf_links = [
+        link.get('href') for link in soup.find_all('a') 
+        if link.get('href') and ".pdf" in link.get('href')  # Filter for links ending in ".pdf"
+    ]
+
+    # Print all found PDF links
+    for pdf_link in pdf_links:
+        print(f"Found PDF link: {pdf_link}")
+
+    # Download the first PDF found (if any)
+    if pdf_links:
+        pdf_response = requests.get(pdf_links[0], headers=headers)  # Send GET request for the PDF
+        with open(f"{company_name}_esg_report.pdf", "wb") as file:  # Save the PDF locally
+            file.write(pdf_response.content)
+        print("PDF report has been downloaded.")
+    else:
+        print("No PDF links found on the webpage.")
